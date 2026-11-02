@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Mi Cancionero de Guitarra</title>
+  <meta name="description" content="Repertorio personal de canciones en guitarra con acordes, progreso de aprendizaje y estado para cantar.">
+  <meta name="theme-color" content="#161311" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f8f4ec" media="(prefers-color-scheme: light)">
+
+  <!-- iOS Safari PWA Metadata -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Cancionero">
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- VISTA 1: LISTA DE REPERTORIO -->
+    <div id="repertoire-view" class="view-container">
+      <header class="top-header">
+        <div class="brand-row">
+          <div class="brand-title-group">
+            <span class="brand-badge" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m11.9 12.1 4.514-4.514"></path>
+                <path d="M20.1 2.3a1 1 0 0 0-1.4 0l-1.114 1.114A2 2 0 0 0 17 4.828v1.344a2 2 0 0 1-.586 1.414A2 2 0 0 1 17.828 7h1.344a2 2 0 0 0 1.414-.586L21.7 5.3a1 1 0 0 0 0-1.4z"></path>
+                <path d="m6 16 2 2"></path>
+                <path d="M8.2 9.9C8.7 8.8 9.8 8 11 8c2.8 0 5 2.2 5 5 0 1.2-.8 2.3-1.9 2.8l-.9.4A2 2 0 0 0 12 18a4 4 0 0 1-4 4c-3.3 0-6-2.7-6-6a4 4 0 0 1 4-4 2 2 0 0 0 1.8-1.2z"></path>
+              </svg>
+            </span>
+            <div>
+              <h1>Mi Cancionero</h1>
+              <p class="subtitle">Repertorio de guitarra</p>
+            </div>
+          </div>
+
+          <div class="header-actions">
+            <button type="button" id="open-backup-btn" class="icon-btn" aria-label="Respaldo e instalación en iPhone">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 15V3"></path>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <path d="m7 10 5 5 5-5"></path>
+              </svg>
+            </button>
+            <button type="button" id="new-song-top-btn" class="btn btn-primary">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 5v14"></path>
+                <path d="M5 12h14"></path>
+              </svg>
+              <span>Nueva</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Resumen rápido del repertorio -->
+        <section class="stats-bar" aria-label="Resumen de tu repertorio">
+          <div class="stat-pill">
+            <span class="stat-number" id="stat-total">0</span>
+            <span class="stat-label">Canciones</span>
+          </div>
+          <div class="stat-pill stat-pill-mastered">
+            <span class="stat-number" id="stat-mastered">0</span>
+            <span class="stat-label">Dominadas</span>
+          </div>
+          <div class="stat-pill stat-pill-sing">
+            <span class="stat-number" id="stat-sing">0</span>
+            <span class="stat-label">Para cantar</span>
+          </div>
+        </section>
+
+        <!-- Buscador y filtros -->
+        <div class="controls-stack">
+          <div class="search-field">
+            <label for="search-input" class="sr-only">Buscar por canción, artista o acorde</label>
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.3-4.3"></path>
+            </svg>
+            <input
+              id="search-input"
+              type="search"
+              inputmode="search"
+              autocomplete="off"
+              placeholder="Buscar canción, artista o acorde (ej. Bm, G)..."
+            >
+            <button type="button" id="clear-search-btn" class="clear-search-btn" hidden aria-label="Limpiar búsqueda">
+              ✕
+            </button>
+          </div>
+
+          <div class="filter-group-row" role="group" aria-label="Filtrar por cuánto me la sé">
+            <button type="button" class="filter-chip is-active" data-filter-mastery="all" aria-pressed="true">Todas</button>
+            <button type="button" class="filter-chip" data-filter-mastery="learning" aria-pressed="false">Aprendiendo</button>
+            <button type="button" class="filter-chip" data-filter-mastery="almost" aria-pressed="false">Casi lista</button>
+            <button type="button" class="filter-chip" data-filter-mastery="mastered" aria-pressed="false">Dominada</button>
+          </div>
+
+          <div class="filter-group-row" role="group" aria-label="Filtrar por estado para cantar">
+            <button type="button" class="filter-chip filter-chip-subtle is-active" data-filter-sing="all" aria-pressed="true">Canto: Todas</button>
+            <button type="button" class="filter-chip filter-chip-subtle" data-filter-sing="ready" aria-pressed="false">🎤 Ya está para cantar</button>
+            <button type="button" class="filter-chip filter-chip-subtle" data-filter-sing="not-ready" aria-pressed="false">⏳ Todavía no</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="song-list-main">
+        <div id="songs-list" class="songs-grid" role="list"></div>
+
+        <div id="empty-state" class="empty-state" hidden role="status">
+          <p class="empty-title" id="empty-state-title">No se encontraron canciones</p>
+          <p class="empty-desc" id="empty-state-desc">Agrega tu primera canción de guitarra o ajusta los filtros de búsqueda.</p>
+          <button type="button" id="empty-action-btn" class="btn btn-primary">Agregar canción</button>
+        </div>
+      </main>
+    </div>
+
+    <!-- VISTA 2: DETALLE DE CANCIÓN (MODO TOCAR EN GUITARRA) -->
+    <section id="detail-view" class="view-container detail-view" hidden aria-labelledby="detail-song-title">
+      <header class="detail-header">
+        <button type="button" id="back-to-list-btn" class="btn btn-ghost">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m15 18-6-6 6-6"></path>
+          </svg>
+          <span>Canciones</span>
+        </button>
+
+        <div class="detail-header-actions">
+          <button type="button" id="edit-current-song-btn" class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+            </svg>
+            <span>Editar</span>
+          </button>
+          <button type="button" id="delete-current-song-btn" class="icon-btn icon-btn-danger" aria-label="Eliminar canción">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 6h18"></path>
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="detail-body">
+        <div class="detail-hero-card">
+          <div class="detail-title-block">
+            <h2 id="detail-song-title" class="detail-title">Título</h2>
+            <p id="detail-song-artist" class="detail-artist"></p>
+          </div>
+
+          <!-- Controles rápidos interactivos: ¿Cuánto me la sé? y ¿Ya está para cantarla? -->
+          <div class="status-controls-grid">
+            <div class="status-box">
+              <span class="status-box-label">¿Cuánto me la sé?</span>
+              <div class="mastery-segmented" role="group" aria-label="Cambiar cuánto me sé la canción">
+                <button type="button" class="segment-btn" data-set-mastery="learning">Aprendiendo</button>
+                <button type="button" class="segment-btn" data-set-mastery="almost">Casi lista</button>
+                <button type="button" class="segment-btn" data-set-mastery="mastered">Dominada</button>
+              </div>
+            </div>
+
+            <div class="status-box">
+              <span class="status-box-label">¿Lista para cantarla?</span>
+              <button type="button" id="detail-toggle-sing-btn" class="sing-toggle-btn" aria-pressed="false">
+                <span id="detail-sing-icon" aria-hidden="true">⏳</span>
+                <span id="detail-sing-text">Todavía no</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Metadatos de ejecución (Tono, Capo, Rasgueo) y Transpositor -->
+          <div class="meta-strip">
+            <div id="detail-meta-badges" class="meta-badges"></div>
+
+            <div class="transpose-control" role="group" aria-label="Transponer acordes">
+              <span class="transpose-label">Tono:</span>
+              <button type="button" id="transpose-down-btn" class="step-btn" aria-label="Bajar medio tono">−1</button>
+              <output id="transpose-value" class="transpose-value" aria-live="polite">Original</output>
+              <button type="button" id="transpose-up-btn" class="step-btn" aria-label="Subir medio tono">+1</button>
+              <button type="button" id="transpose-reset-btn" class="reset-transpose-btn" hidden>Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resumen de todos los acordes que lleva la canción -->
+        <section id="detail-all-chords-section" class="detail-card" aria-labelledby="all-chords-heading">
+          <h3 id="all-chords-heading" class="section-heading">Acordes de la canción</h3>
+          <div id="detail-all-chords" class="chord-pills-wrap"></div>
+        </section>
+
+        <!-- Progresión por secciones (Verso, Coro, etc.) -->
+        <section id="detail-sections-card" class="detail-card" aria-labelledby="sections-heading">
+          <h3 id="sections-heading" class="section-heading">Progresión por secciones</h3>
+          <div id="detail-sections-list" class="sections-stack"></div>
+        </section>
+
+        <!-- Letra con acordes opcional -->
+        <section id="detail-lyrics-card" class="detail-card" aria-labelledby="lyrics-heading">
+          <h3 id="lyrics-heading" class="section-heading">Letra y cifrado</h3>
+          <div id="detail-lyrics-content" class="lyrics-sheet"></div>
+        </section>
+
+        <!-- Notas de práctica -->
+        <section id="detail-notes-card" class="detail-card" aria-labelledby="notes-heading">
+          <h3 id="notes-heading" class="section-heading">Notas de guitarra</h3>
+          <p id="detail-notes-content" class="notes-paragraph"></p>
+        </section>
+      </div>
+    </section>
+  </div>
+
+  <!-- MODAL NATIVO <dialog>: CREAR / EDITAR CANCIÓN -->
+  <dialog id="song-dialog" aria-labelledby="song-dialog-title">
+    <form id="song-form" method="dialog" novalidate>
+      <header class="dialog-header">
+        <h2 id="song-dialog-title">Nueva canción</h2>
+        <button type="button" id="close-song-dialog-btn" class="icon-btn" aria-label="Cerrar formulario">✕</button>
+      </header>
+
+      <div class="dialog-body">
+        <input type="hidden" id="song-id-input">
+
+        <div class="field-group">
+          <label for="song-title-input">Nombre de la canción <span class="required-mark" aria-hidden="true">*</span></label>
+          <input
+            id="song-title-input"
+            name="title"
+            type="text"
+            required
+            autocomplete="off"
+            placeholder="Ej. De Música Ligera"
+            aria-describedby="song-title-error"
+          >
+          <p id="song-title-error" class="field-error" role="alert" hidden>Escribe el nombre de la canción.</p>
+        </div>
+
+        <div class="field-row-2">
+          <div class="field-group">
+            <label for="song-artist-input">Artista / Banda</label>
+            <input
+              id="song-artist-input"
+              name="artist"
+              type="text"
+              autocomplete="off"
+              placeholder="Ej. Soda Stereo"
+            >
+          </div>
+          <div class="field-group">
+            <label for="song-key-input">Tono / Escala</label>
+            <input
+              id="song-key-input"
+              name="key"
+              type="text"
+              autocomplete="off"
+              placeholder="Ej. Bm, Sol, Am"
+            >
+          </div>
+        </div>
+
+        <div class="field-row-2">
+          <div class="field-group">
+            <label for="song-mastery-select">¿Cuánto me la sé?</label>
+            <select id="song-mastery-select" name="mastery">
+              <option value="learning">🌱 Aprendiendo</option>
+              <option value="almost">🔥 Casi lista</option>
+              <option value="mastered">⭐ Dominada</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="song-sing-select">¿Está para cantarla?</label>
+            <select id="song-sing-select" name="readyToSing">
+              <option value="false">⏳ Todavía no</option>
+              <option value="true">🎤 ¡Ya está para cantar!</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row-2">
+          <div class="field-group">
+            <label for="song-capo-input">Cejilla / Capo (traste)</label>
+            <input
+              id="song-capo-input"
+              name="capo"
+              type="number"
+              inputmode="numeric"
+              min="0"
+              max="15"
+              value="0"
+            >
+          </div>
+          <div class="field-group">
+            <label for="song-strumming-input">Rasgueo / Ritmo</label>
+            <input
+              id="song-strumming-input"
+              name="strumming"
+              type="text"
+              autocomplete="off"
+              placeholder="Ej. ↓↓ ↑↑ ↓↑"
+            >
+          </div>
+        </div>
+
+        <!-- Barra de inserción rápida de acordes y símbolos para iPhone -->
+        <div class="quick-chord-bar" aria-label="Insertar acorde o símbolo rápido en el campo activo">
+          <span class="quick-chord-title">Teclado rápido:</span>
+          <div class="quick-chord-buttons">
+            <button type="button" class="chord-key-btn" data-insert="C">C</button>
+            <button type="button" class="chord-key-btn" data-insert="D">D</button>
+            <button type="button" class="chord-key-btn" data-insert="E">E</button>
+            <button type="button" class="chord-key-btn" data-insert="F">F</button>
+            <button type="button" class="chord-key-btn" data-insert="G">G</button>
+            <button type="button" class="chord-key-btn" data-insert="A">A</button>
+            <button type="button" class="chord-key-btn" data-insert="B">B</button>
+            <button type="button" class="chord-key-btn" data-insert="m">m</button>
+            <button type="button" class="chord-key-btn" data-insert="7">7</button>
+            <button type="button" class="chord-key-btn" data-insert="#">#</button>
+            <button type="button" class="chord-key-btn" data-insert=" - ">-</button>
+            <button type="button" class="chord-key-btn" data-insert="↓">↓</button>
+            <button type="button" class="chord-key-btn" data-insert="↑">↑</button>
+            <button type="button" class="chord-key-btn" data-insert="[Am]">[Acorde]</button>
+          </div>
+        </div>
+
+        <!-- Secciones de acordes (Intro, Verso, Coro...) -->
+        <fieldset class="sections-fieldset">
+          <div class="fieldset-header">
+            <legend>Acordes por secciones</legend>
+            <button type="button" id="add-section-row-btn" class="btn btn-small">
+              + Añadir sección
+            </button>
+          </div>
+          <p class="field-hint">Separa los acordes con guiones o espacios (ej. <code>Bm - G - D - A</code> o <code>Lam - Fa - Do - Sol</code>).</p>
+          <div id="sections-editor-list" class="sections-editor-list"></div>
+        </fieldset>
+
+        <!-- Letra con acordes opcional -->
+        <div class="field-group">
+          <label for="song-lyrics-input">Letra con acordes (opcional)</label>
+          <p class="field-hint">Puedes escribir acordes entre corchetes como <code>[Am]Letra</code> o pegar líneas de acordes arriba de cada verso.</p>
+          <textarea
+            id="song-lyrics-input"
+            name="lyricsWithChords"
+            rows="6"
+            placeholder="[Verso]&#10;[Bm]Ella durmió [G]al calor de las [D]masas [A]"
+          ></textarea>
+        </div>
+
+        <!-- Notas adicionales -->
+        <div class="field-group">
+          <label for="song-notes-input">Notas o recordatorios</label>
+          <textarea
+            id="song-notes-input"
+            name="notes"
+            rows="2"
+            placeholder="Ej. Empezar arpegiando suave, falta practicar el cambio al puente..."
+          ></textarea>
+        </div>
+      </div>
+
+      <footer class="dialog-footer">
+        <button type="button" id="cancel-song-dialog-btn" class="btn btn-ghost">Cancelar</button>
+        <button type="submit" id="save-song-btn" class="btn btn-primary">Guardar canción</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- MODAL NATIVO <dialog>: RESPALDO E INSTALACIÓN EN IPHONE SAFARI -->
+  <dialog id="backup-dialog" closedby="any" aria-labelledby="backup-dialog-title">
+    <div class="dialog-header">
+      <h2 id="backup-dialog-title">Respaldo y Uso en iPhone</h2>
+      <button type="button" id="close-backup-dialog-btn" class="icon-btn" aria-label="Cerrar ventana">✕</button>
+    </div>
+
+    <div class="dialog-body">
+      <section class="info-block">
+        <h3>📲 Cómo instalarla en tu iPhone (Safari)</h3>
+        <ol class="steps-list">
+          <li>Abre esta dirección en <strong>Safari</strong> desde tu iPhone.</li>
+          <li>Toca el botón <strong>Compartir</strong> (el cuadrado con la flecha hacia arriba en la barra inferior).</li>
+          <li>Desliza hacia abajo y selecciona <strong>«Agregar a pantalla de inicio»</strong>.</li>
+          <li>¡Listo! Se abrirá a pantalla completa como app nativa y funcionará <strong>100% sin internet</strong>.</li>
+        </ol>
+      </section>
+
+      <section class="info-block">
+        <h3>💾 Copia de seguridad de tus canciones</h3>
+        <p class="field-hint">Tus canciones se guardan en tu iPhone. Puedes descargar un archivo de respaldo o restaurarlo cuando quieras.</p>
+        <div class="backup-actions-row">
+          <button type="button" id="export-backup-btn" class="btn btn-secondary">
+            Descargar respaldo (.json)
+          </button>
+          <label for="import-backup-input" class="btn btn-secondary file-label-btn">
+            Importar respaldo
+          </label>
+          <input id="import-backup-input" type="file" accept="application/json,.json" class="sr-only">
+        </div>
+      </section>
+    </div>
+
+    <footer class="dialog-footer">
+      <form method="dialog">
+        <button type="submit" class="btn btn-primary">Listo</button>
+      </form>
+    </footer>
+  </dialog>
+
+  <!-- MODAL NATIVO <dialog>: CONFIRMAR ELIMINACIÓN -->
+  <dialog id="confirm-delete-dialog" aria-labelledby="confirm-delete-title">
+    <div class="dialog-header">
+      <h2 id="confirm-delete-title">¿Eliminar canción?</h2>
+    </div>
+    <div class="dialog-body">
+      <p id="confirm-delete-message">Esta canción se eliminará de tu repertorio.</p>
+    </div>
+    <footer class="dialog-footer">
+      <form method="dialog" class="dialog-footer-form">
+        <button type="submit" value="cancel" class="btn btn-ghost" autofocus>Cancelar</button>
+        <button type="submit" value="delete" class="btn btn-danger">Eliminar</button>
+      </form>
+    </footer>
+  </dialog>
+
+  <!-- Toast accesible para confirmaciones -->
+  <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
