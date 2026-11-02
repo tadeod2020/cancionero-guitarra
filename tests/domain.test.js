@@ -115,7 +115,7 @@ test('filterSongs and computeStats filter by query (accent-insensitive), mastery
   assert.equal(cycleMastery('mastered'), 'learning');
 });
 
-test('storage backup serialization and restore roundtrip', () => {
+test('storage starts empty by default, cleans legacy seeds, and roundtrips backups', () => {
   const mem = new Map();
   const mockStorage = {
     getItem: (k) => mem.get(k) ?? null,
@@ -123,15 +123,33 @@ test('storage backup serialization and restore roundtrip', () => {
   };
 
   const initial = loadSongsFromStorage(mockStorage);
-  assert.equal(initial.length, 3);
+  assert.equal(initial.length, 0);
 
-  const backupJson = serializeBackup(initial);
+  const sampleSong = validateAndNormalizeSong({
+    id: 'custom_1',
+    title: 'Mi Canción',
+    artist: 'Yo',
+    mastery: 'mastered',
+    readyToSing: true,
+    sections: [{ label: 'Intro', chords: 'Am - G - F - E' }]
+  });
+
+  // Verify legacy seed songs are stripped automatically while keeping user songs
+  saveSongsToStorage(
+    [
+      { id: 'seed_musica_ligera', title: 'De Música Ligera' },
+      sampleSong
+    ],
+    mockStorage
+  );
+  const cleaned = loadSongsFromStorage(mockStorage);
+  assert.equal(cleaned.length, 1);
+  assert.equal(cleaned[0].title, 'Mi Canción');
+
+  const backupJson = serializeBackup(cleaned);
   const restored = parseBackupPayload(backupJson);
-  assert.equal(restored.length, 3);
-  assert.equal(restored[0].title, 'De Música Ligera');
-
-  saveSongsToStorage(restored.slice(0, 1), mockStorage);
-  assert.equal(loadSongsFromStorage(mockStorage).length, 1);
+  assert.equal(restored.length, 1);
+  assert.equal(restored[0].title, 'Mi Canción');
 });
 
 test('PWA assets, iOS Safari tags, and modern-web-guidance dialog rules are present', async () => {
